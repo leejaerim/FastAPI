@@ -17,3 +17,18 @@ async def root():
 ---
 ### 참고자료
 - [FastAPI 공식 레퍼런스](https://fastapi.tiangolo.com/ko/)
+
+---
+# 명령어 
+### 서버 실행
+> brew services start mongodb-community@6.0
+- http://localhost:27017
+### 몽고쉘 실행
+>mongosh
+### 서버 종료
+> brew services stop mongo-community@6.0
+---
+
+출처 : 
+[공식 몽고DB](https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-os-x/)
+[몽고DB with fastapi](https://github.com/mongodb-developer/mongodb-with-fastapi)
