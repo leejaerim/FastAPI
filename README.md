@@ -32,3 +32,8 @@ async def root():
 출처 : 
 [공식 몽고DB](https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-os-x/)
 [몽고DB with fastapi](https://github.com/mongodb-developer/mongodb-with-fastapi)
+
+### Step 1. Modeling MongoDB  by using MongoEngine
+- getting rid of Not Understanding concept, Study hard step by step
+- getting list of Employees : `Employee.objects().to_json()`
+- Reference : [FastAPI & MongoDB](https://www.youtube.com/watch?v=1h2aQhv8-oI&list=PL4iRawDSyRvWybsXRTommb3acUigWPEsj&index=3)
