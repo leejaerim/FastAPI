@@ -37,3 +37,41 @@ async def root():
 - getting rid of Not Understanding concept, Study hard step by step
 - getting list of Employees : `Employee.objects().to_json()`
 - Reference : [FastAPI & MongoDB](https://www.youtube.com/watch?v=1h2aQhv8-oI&list=PL4iRawDSyRvWybsXRTommb3acUigWPEsj&index=3)
+
+### Path Parameter
+```python
+@app.get("/get_employee/{emp_id}")
+def get_employee(emp_id : int):
+    employee = Employee.objects.get(emp_id=emp_id)
+```
+
+### Query parameter
+```python
+from fastapi import Query
+from mongoengine.queryset.visitor import Q
+@app.get("/search_employees")
+def search_employees(name : str, age : int = Query(None, gt=18)):
+    employees_list = Employee.objects.filter(Q(name__icontains=name) | Q(age=age)).to_json()
+```
+
+### RequestBody with Post type
+```python
+@app.post("/add_employee")
+```
+### Create Employee using Queryparamter 
+```python
+@app.get("/add_employee")
+def add_employee(emp_id : int , name : str, age : int , teams : str = Query("")):
+    teams_list = teams.split("_")
+    employees_list = Employee.objects.filter(emp_id=emp_id).to_json()
+    if len(employees_list) < 3 :
+        new_employee = Employee(emp_id=emp_id,
+                                name=name,
+                                age=age,
+                                teams=teams_list
+                                )
+        new_employee.save()
+        return {"message": "200"}
+    else:
+        return {"message": "401"}
+```
