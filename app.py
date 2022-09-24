@@ -1,5 +1,5 @@
 from typing import Union
-from models import Employee
+from models import Employee, User
 from fastapi import FastAPI
 import json
 from mongoengine import connect
@@ -8,25 +8,15 @@ app = FastAPI()
 connect(db="mongo", host="localhost",port=27017)
 
 
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
+
 
 
 @app.get("/items/{item_id}")
 def read_item(item_id: int, q: Union[str, None] = None):
     return {"item_id": item_id, "q": q}
 
-@app.get("/get_all_employees")
-def get_all_employees():
-    employees = Employee.objects().to_json()
-    employees_list = json.loads(employees)
-    return {"employees" : employees_list} 
 
-@app.get("/get_employee/{emp_id}")
-def get_employee(emp_id : int):
-    employee = Employee.objects.get(emp_id=emp_id)
-    return {"employee.emp_id" : employee.emp_id, "employee.name" : employee.name}
+
 
 from fastapi import Query
 from mongoengine.queryset.visitor import Q
@@ -72,3 +62,75 @@ def add_employee(emp_id : int , name : str, age : int , teams : str = Query(""))
         return {"message": "Employee is added."}
     else:
         return {"message": "Employee isn't added."}
+class NewUser(BaseModel):
+    name : str
+    password :str
+
+from passlib.context import CryptContext
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def get_password_hash(password):
+    return pwd_context.hash(password)
+@app.post("/sign_up")
+def sign_up(new_user : NewUser):
+    user = User(name = new_user.name,password=get_password_hash(new_user.password))
+    user.save()
+    return {"message":"new user created successfully"}
+
+from fastapi.security import OAuth2PasswordBearer,OAuth2PasswordRequestForm
+from fastapi import Depends, HTTPException
+
+from datetime import datetime, timedelta
+from jose import jwt
+SECRET_KEY = "b96115f6c2db831022480a8438c76abb757d0b71d34d9046cce673f1cf43269d"
+ALGORITHME = "HS256"
+def create_access_token(data : dict, expired_delta : timedelta):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + expired_delta
+    to_encode.update({"exp":expire})
+    encode_jwt = jwt.encode(to_encode, SECRET_KEY,algorithm=ALGORITHME)
+    return encode_jwt
+
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+
+def auth(name,password):
+    try:
+        user = json.loads(User.objects.get(name=name).to_json())
+    except User.DoesNotExist:
+        return False
+    if user :
+        password_check = pwd_context.verify(password, user['password'])
+        return password_check
+    else :
+        return False
+
+@app.post("/login")
+def login(form_data : OAuth2PasswordRequestForm = Depends()):
+    username = form_data.username
+    password = form_data.password
+
+    if auth(username, password) : 
+        access_token = create_access_token(data={"sub":username},expired_delta=timedelta(minutes=30))
+        return {"access_token" : access_token, "token_type" : "bearer"}
+    else :
+        raise HTTPException(status_code=400, detail="INCORRECT USERNAME OR PASSWORD")
+
+@app.get("/")
+def read_root(token : str= Depends(oauth2_scheme)):
+    print(jwt.decode(token,SECRET_KEY,algorithms=ALGORITHME))
+
+    return {"token":token}
+
+@app.get("/get_employee/{emp_id}")
+def get_employee(emp_id : int):
+    employee = Employee.objects.get(emp_id=emp_id)
+    return {"employee.emp_id" : employee.emp_id, "employee.name" : employee.name}
+
+
+@app.get("/get_all_employees")
+def get_all_employees(token : str=Depends(oauth2_scheme)):
+    employees = Employee.objects().to_json()
+    employees_list = json.loads(employees)
+    return {"employees" : employees_list} 

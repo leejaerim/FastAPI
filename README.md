@@ -75,3 +75,13 @@ def add_employee(emp_id : int , name : str, age : int , teams : str = Query(""))
     else:
         return {"message": "401"}
 ```
+
+---
+### Authentication
+- `pip3 install passlib,bcrypt`를 통한 password 암호화 
+- requestBody를 이용한 post 통신 및 create user
+- 모델 추가 & requestBody로 받을 클래스 생성
+- 로그인을 통한 서버 접속 후 , token으로 세션 유지
+- jwt를 통한 세션관리, `token : str = Depends(outh2_scheme)`
+    -> 로그인이 필요한 경우 파라미터 삽입
+- 랜덤 시크릿 키 생성 명령어 `openssl rand -hex 32``
