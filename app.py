@@ -1,10 +1,24 @@
 from typing import Union
 from models import Employee, User
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 import json
 from mongoengine import connect
 
 app = FastAPI()
+
+origins = [
+    "http://localhost:3000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 connect(db="mongo", host="localhost",port=27017)
 
 
@@ -98,16 +112,20 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 def auth(name,password):
     try:
         user = json.loads(User.objects.get(name=name).to_json())
-    except User.DoesNotExist:
-        return False
+    except :
+        raise HTTPException(status_code=400, detail="INCORRECT USERNAME OR PASSWORD")
     if user :
         password_check = pwd_context.verify(password, user['password'])
         return password_check
     else :
-        return False
+        raise HTTPException(status_code=400, detail="INCORRECT USERNAME OR PASSWORD")
+
+class login_user(BaseModel):
+    username : str
+    password : str
 
 @app.post("/login")
-def login(form_data : OAuth2PasswordRequestForm = Depends()):
+def login(form_data: login_user):
     username = form_data.username
     password = form_data.password
 
