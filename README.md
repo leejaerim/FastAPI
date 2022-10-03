@@ -20,6 +20,9 @@ async def root():
 
 ---
 # 명령어 
+### 명령어 위치
+- `/opt/homebrew/opt/mongodb-community@6.0`
+- insert shell
 ### 서버 실행
 > brew services start mongodb-community@6.0
 - http://localhost:27017
@@ -27,6 +30,7 @@ async def root():
 >mongosh
 ### 서버 종료
 > brew services stop mongo-community@6.0
+
 ---
 
 출처 : 
